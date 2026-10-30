@@ -431,6 +431,27 @@ export const extendTransform = (expression: string): { code: string } | undefine
 			},
 		});
 
+		// recast ranks `??` below `||` and `&&` and so drops the parentheses
+		// around a `||`/`&&` operand of `??` when reprinting. Mixing them without
+		// parentheses is a syntax error, so make the grouping explicit.
+		visit(ast, {
+			visitLogicalExpression(path) {
+				this.traverse(path);
+
+				if (path.node.operator !== '??') return;
+
+				for (const side of ['left', 'right'] as const) {
+					const operand = path.node[side];
+					if (
+						operand.type === 'LogicalExpression' &&
+						(operand.operator === '&&' || operand.operator === '||')
+					) {
+						path.get(side).replace(types.builders.parenthesizedExpression(operand));
+					}
+				}
+			},
+		});
+
 		return print(ast);
 	} catch (e) {
 		return;

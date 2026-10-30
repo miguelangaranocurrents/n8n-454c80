@@ -189,6 +189,11 @@ describe('Expression Parser', () => {
 		test('Optional chaining with undefined argument', () => {
 			expect(evaluate('={{ [1, 2, 3, 4]?.sum((undefined)?.test) }}')).toBe(10);
 		});
+
+		test('Optional chaining keeps grouping of logical operands of ??', () => {
+			expect(evaluate('={{ [null, 6]?.[0] ?? ([null, 6].last() && 4217) }}')).toBe(4217);
+			expect(evaluate('={{ ([null, 6].last() || 1) ?? [null, 6]?.[0] }}')).toBe(6);
+		});
 	});
 
 	describe('Non dot extensions', () => {
